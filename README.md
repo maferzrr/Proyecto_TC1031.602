@@ -40,7 +40,7 @@ Para este primer avance se implementó el algoritmo de ordenamiento **Merge Sort
   * **Peor caso: $O(n \log n)$**
   * **Mejor caso: $O(n \log n)$**
   * **Caso promedio: $O(n \log n)$**
-  * **Justificación:** En cada nivel de recursión, divide el vector a la mitad (`mergeSplit`), lo que genera una profundidad de árbol de llamadas de orden $O(\log n). Posteriormente, el procedimiento de unión (`mergeArray`) recorre todos los elementos de los subarreglos para compararlos y copiarlos linealmente, requiriendo $O(n)$ operaciones por nivel. En cada nivel se realizan comparaciones proporcionales a $n$, el costo temporal es estrictamente $O(n \log n)$ sin importar el orden inicial de los datos.
+  * **Justificación:** En cada nivel de recursión, divide el vector a la mitad (`mergeSplit`), lo que genera una profundidad de árbol de llamadas de orden $O(n \log n)$. Posteriormente, el procedimiento de unión (`mergeArray`) recorre todos los elementos de los subarreglos para compararlos y copiarlos linealmente, requiriendo $O(n)$ operaciones por nivel. En cada nivel se realizan comparaciones proporcionales a $n$, el costo temporal es estrictamente $O(n \log n)$ sin importar el orden inicial de los datos.
 
 ### 2. Justificación de Elección 
 
