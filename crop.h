@@ -1,7 +1,6 @@
 #ifndef CROP_H
 #define CROP_H
 
-#include <iostream>
 #include <string>
 
 using namespace std;
@@ -16,49 +15,64 @@ private:
     int seedCost;
 
 public:
-    // Complejidad: O(1) - Asignación directa de valores por defecto
-    Crop() : name(""), season(""), growDays(0), regrowDays(0), sellPrice(0), seedCost(0) {}
-
-    // Complejidad: O(1) - Inicialización directa de atributos
-    Crop(string name, string season, int growDays, int regrowDays, int sellPrice, int seedCost)
-        : name(name), season(season), growDays(growDays), regrowDays(regrowDays), 
-          sellPrice(sellPrice), seedCost(seedCost) {}
+    // Constructores
+    Crop();
+    Crop(string name, string season, int growDays, int regrowDays, int sellPrice, int seedCost);
 
     // Getters
-    // Complejidad: O(1) - Retorno directo de atributo
-    string getName() const { return name; }
-    string getSeason() const { return season; }
-    int getGrowDays() const { return growDays; }
-    int getRegrowDays() const { return regrowDays; }
-    int getSellPrice() const { return sellPrice; }
-    int getSeedCost() const { return seedCost; }
+    string getName() const;
+    string getSeason() const;
+    int getGrowDays() const;
+    int getRegrowDays() const;
+    int getSellPrice() const;
+    int getSeedCost() const;
 
     // Métodos
-    // Complejidad: O(1) - Comparación condicional simple
-    bool canRegrow() const {
-        return regrowDays > 0;
-    }
-
-    // Complejidad: O(1) - Operaciones aritméticas elementales
-    double dailyCropsProfit() const {
-        if (!canRegrow()) {
-            if (growDays <= 0) return 0.0;
-            double netProfit = sellPrice - seedCost;
-            return netProfit / growDays;
-        } else {
-            if (regrowDays <= 0) return 0.0;
-            int totalHarvest = 1 + ((28 - growDays) / regrowDays);
-            double totalRevenue = totalHarvest * sellPrice;
-            double netProfit = totalRevenue - seedCost;
-            return netProfit / 28.0;
-        }
-    }
+    bool canRegrow() const;
+    float dailyCropsProfit() const;
 
     // Sobrecarga de operador
-    // Complejidad: O(1) - Llama dos veces a dailyCropsProfit() que es O(1) y compara
-    bool operator<(const Crop& other) const {
-        return dailyCropsProfit() < other.dailyCropsProfit();
-    }
+    bool operator<(const Crop& other) const;
 };
+
+// Constructor por defecto
+Crop::Crop() : name(""), season(""), growDays(0), regrowDays(0), sellPrice(0), seedCost(0) {}
+
+// Constructor por parámetros
+Crop::Crop(string name, string season, int growDays, int regrowDays, int sellPrice, int seedCost)
+    : name(name), season(season), growDays(growDays), regrowDays(regrowDays), 
+      sellPrice(sellPrice), seedCost(seedCost) {}
+
+// Getters
+string Crop::getName() const { return name; }
+string Crop::getSeason() const { return season; }
+int Crop::getGrowDays() const { return growDays; }
+int Crop::getRegrowDays() const { return regrowDays; }
+int Crop::getSellPrice() const { return sellPrice; }
+int Crop::getSeedCost() const { return seedCost; }
+
+// Métodos
+bool Crop::canRegrow() const {
+    return regrowDays > 0;
+}
+
+float Crop::dailyCropsProfit() const {
+    if (!canRegrow()) {
+        if (growDays <= 0) return 0.0f;
+        float netProfit = sellPrice - seedCost;
+        return netProfit / growDays;
+    } else {
+        if (regrowDays <= 0) return 0.0f;
+        int totalHarvest = 1 + ((28 - growDays) / regrowDays);
+        float totalRevenue = totalHarvest * sellPrice;
+        float netProfit = totalRevenue - seedCost;
+        return netProfit / 28.0f;
+    }
+}
+
+// Sobrecarga de operador
+bool Crop::operator<(const Crop& other) const {
+    return dailyCropsProfit() < other.dailyCropsProfit();
+}
 
 #endif

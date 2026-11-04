@@ -3,23 +3,29 @@
 #include <sstream>
 #include <vector>
 #include <string>
+#include <iomanip>
 
 #include "crop.h"
 #include "mergeSort.h"
 
 using namespace std;
 
-// Complejidad: O(n) - Recorre el vector para imprimir cada elemento
+// Complejidad: O(n) - Recorre el vector para imprimir cada elemento en formato de tabla fija
 void printCrops(const vector<Crop>& cropList) {
     if (cropList.empty()) {
         cout << "No hay cultivos para mostrar.\n";
         return;
     }
     cout << "\n--------------------------------------------------------------\n";
-    cout << "Nombre\t\tTemporada\tGanancia/dia\n";
+    // setw define el ancho fijo en caracteres para cada columna
+    cout << left << setw(15) << "Nombre" 
+         << setw(12) << "Temporada" 
+         << "Ganancia/dia\n";
     cout << "--------------------------------------------------------------\n";
+    
     for (const Crop& c : cropList) {
-        cout << c.getName() << "\t\t[" << c.getSeason() << "]\t\t"
+        cout << left << setw(15) << c.getName() 
+             << setw(12) << ("[" + c.getSeason() + "]") 
              << c.dailyCropsProfit() << " g/dia\n";
     }
     cout << "--------------------------------------------------------------\n";
@@ -61,19 +67,25 @@ int main() {
 
     do {
         cout << "\n=== Junimo Crop Assistant ===\n";
-        cout << "1. Ver todos los cultivos ordenados por rentabilidad\n";
-        cout << "2. Filtrar cultivos por temporada\n";
-        cout << "3. Salir\n";
+        cout << "1. Ver lista de cultivos sin ordenar \n";
+        cout << "2. Ver todos los cultivos ordenados por rentabilidad\n";
+        cout << "3. Filtrar cultivos por temporada\n";
+        cout << "4. Salir\n";
         cout << "Selecciona una opcion: ";
         cin >> opcion;
 
         if (opcion == 1) {
+            // Opción nueva: Desplegar sin ordenar
+            cout << "\n--- Lista de Cultivos (Sin Ordenar) ---";
+            printCrops(crops);
+
+        } else if (opcion == 2) {
             // Complejidad: O(n log n) por el Merge Sort
             vector<Crop> sortedCrops = sorter.mergeSort(crops);
             cout << "\n--- Todos los Cultivos (Ordenados por Ganancia Diaria) ---";
             printCrops(sortedCrops);
 
-        } else if (opcion == 2) {
+        } else if (opcion == 3) {
             int opcionTemp = 0;
             cout << "\nElige la temporada:\n";
             cout << "1. Spring\n";
@@ -104,13 +116,13 @@ int main() {
             cout << "\n--- Cultivos de " << selectedSeason << " (Ordenados por Ganancia Diaria) ---";
             printCrops(sortedSeasonCrops);
 
-        } else if (opcion == 3) {
+        } else if (opcion == 4) {
             cout << "Saliendo del asistente. \n";
         } else {
             cout << "Opcion invalida. \n";
         }
 
-    } while (opcion != 3);
+    } while (opcion != 4);
 
     return 0;
 }
