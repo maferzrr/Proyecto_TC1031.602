@@ -7,6 +7,7 @@
 
 #include "crop.h"
 #include "mergeSort.h"
+#include "BST.h"
 
 using namespace std;
 
@@ -17,7 +18,6 @@ void printCrops(const vector<Crop>& cropList) {
         return;
     }
     cout << "\n--------------------------------------------------------------\n";
-    // setw define el ancho fijo en caracteres para cada columna
     cout << left << setw(15) << "Nombre" 
          << setw(12) << "Temporada" 
          << "Ganancia/dia\n";
@@ -40,6 +40,7 @@ int main() {
     }
 
     vector<Crop> crops;
+    BST<string> cropTree; // Instancia de nuestra estructura no lineal (BST)
     string line;
 
     // Descartar la cabecera
@@ -57,7 +58,11 @@ int main() {
         getline(ss, strSell, ',');
         getline(ss, strSeed);
 
-        crops.push_back(Crop(name, season, stoi(strGrow), stoi(strRegrow), stoi(strSell), stoi(strSeed)));
+        Crop newCrop(name, season, stoi(strGrow), stoi(strRegrow), stoi(strSell), stoi(strSeed));
+        crops.push_back(newCrop);
+
+        // Insertar el nombre en el Árbol Binario de Búsqueda
+        cropTree.add(name);
     }
 
     file.close();
@@ -67,16 +72,17 @@ int main() {
 
     do {
         cout << "\n=== Junimo Crop Assistant ===\n";
-        cout << "1. Ver lista de cultivos sin ordenar \n";
+        cout << "1. Ver lista de cultivos sin ordenar\n";
         cout << "2. Ver todos los cultivos ordenados por rentabilidad\n";
         cout << "3. Filtrar cultivos por temporada\n";
-        cout << "4. Filtrar cultivos Multi-cosecha\n";
-        cout << "5. Salir\n";
+        cout << "4. Buscar informacion de un cultivo por nombre \n";
+        cout << "5. Ver nombres de cultivos en orden alfabetico \n";
+        cout << "6. Ver cultivos que vuelven a crecer (Multi-cosecha)\n";
+        cout << "7. Salir\n";
         cout << "Selecciona una opcion: ";
         cin >> opcion;
 
         if (opcion == 1) {
-            // Opción nueva: Desplegar sin ordenar
             cout << "\n--- Lista de Cultivos (Sin Ordenar) ---";
             printCrops(crops);
 
@@ -104,7 +110,6 @@ int main() {
                 continue;
             }
 
-            // Complejidad: O(n) para filtrar los elementos coincidentes
             vector<Crop> filteredCrops;
             for (const Crop& c : crops) {
                 if (c.getSeason() == selectedSeason) {
@@ -112,30 +117,61 @@ int main() {
                 }
             }
 
-            // Complejidad: O(k log k), donde k es el numero de cultivos de esa temporada
             vector<Crop> sortedSeasonCrops = sorter.mergeSort(filteredCrops);
             cout << "\n--- Cultivos de " << selectedSeason << " (Ordenados por Ganancia Diaria) ---";
             printCrops(sortedSeasonCrops);
 
         } else if (opcion == 4) {
-            // Filtrar los cultivos que vuelven a crecer
+            // Búsqueda eficiente O(log n) en el BST
+            string searchName;
+            cout << "\nIngresa el nombre exacto del cultivo : ";
+            cin >> searchName;
+
+            if (cropTree.find(searchName)) {
+                cout << "\n[!] Cultivo encontrado.\n";
+                for (const Crop& c : crops) {
+                    if (c.getName() == searchName) {
+                        cout << "--------------------------------------------\n";
+                        cout << "Nombre:              " << c.getName() << "\n";
+                        cout << "Temporada:           " << c.getSeason() << "\n";
+                        cout << "Dias de crecimiento: " << c.getGrowDays() << " dias\n";
+                        cout << "Dias de regrow:      " << c.getRegrowDays() << " dias\n";
+                        cout << "Precio de venta:     " << c.getSellPrice() << " g\n";
+                        cout << "Costo de semilla:    " << c.getSeedCost() << " g\n";
+                        cout << "Ganancia diaria:     " << c.dailyCropsProfit() << " g/dia\n";
+                        cout << "--------------------------------------------\n";
+                        break;
+                    }
+                }
+            } else {
+                cout << "\n[X] El cultivo '" << searchName << "' no existe en el sistema.\n";
+            }
+
+        } else if (opcion == 5) {
+            // Recorrido Inorder para mostrar los datos ordenados alfabéticamente
+            cout << "\n--- Cultivos en Orden Alfabetico (BST Inorder) ---\n";
+            cropTree.printInorder();
+
+        } else if (opcion == 6) {
+            // Filtrar usando el método canRegrow()
             vector<Crop> regrowCrops;
             for (const Crop& c : crops) {
-                if (c.canRegrow()) { 
+                if (c.canRegrow()) {
                     regrowCrops.push_back(c);
                 }
             }
-        
-            vector<Crop> sortedRegrowCrops = sorter.mergeSort(regrowCrops);
-            
-            cout << "\n--- Cultivos Multi-cosecha ---";
-            printCrops(sortedRegrowCrops); 
 
-        } else if (opcion == 5) {
-            cout << "Saliendo del asistente. \n";
+            vector<Crop> sortedRegrowCrops = sorter.mergeSort(regrowCrops);
+            cout << "\n--- Cultivos con Multi-Cosecha (Ordenados por Ganancia) ---";
+            printCrops(sortedRegrowCrops);
+
+        } else if (opcion == 7) {
+            cout << "Saliendo del asistente.\n";
+        } else {
+            cout << "Opcion invalida.\n";
         }
 
-    } while (opcion != 5);
+    } while (opcion != 7);
 
     return 0;
 }
