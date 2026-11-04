@@ -70,7 +70,8 @@ int main() {
         cout << "1. Ver lista de cultivos sin ordenar \n";
         cout << "2. Ver todos los cultivos ordenados por rentabilidad\n";
         cout << "3. Filtrar cultivos por temporada\n";
-        cout << "4. Salir\n";
+        cout << "4. Filtrar cultivos Multi-cosecha\n";
+        cout << "5. Salir\n";
         cout << "Selecciona una opcion: ";
         cin >> opcion;
 
@@ -117,12 +118,24 @@ int main() {
             printCrops(sortedSeasonCrops);
 
         } else if (opcion == 4) {
+            // Filtrar los cultivos que vuelven a crecer
+            vector<Crop> regrowCrops;
+            for (const Crop& c : crops) {
+                if (c.canRegrow()) { 
+                    regrowCrops.push_back(c);
+                }
+            }
+        
+            vector<Crop> sortedRegrowCrops = sorter.mergeSort(regrowCrops);
+            
+            cout << "\n--- Cultivos Multi-cosecha ---";
+            printCrops(sortedRegrowCrops); 
+
+        } else if (opcion == 5) {
             cout << "Saliendo del asistente. \n";
-        } else {
-            cout << "Opcion invalida. \n";
         }
 
-    } while (opcion != 4);
+    } while (opcion != 5);
 
     return 0;
 }
