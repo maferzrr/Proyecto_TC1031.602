@@ -1,84 +1,88 @@
-# Junimo Crop Assistant - Planificador de Cultivos y Rentabilidad por Temporada
+# Junimo Crop Assistant
 
-Este proyecto es una herramienta en C++ diseñada para optimizar la toma de decisiones agrícolas en el videojuego *Stardew Valley*. El asistente procesa una base de datos de cultivos, calcula su rentabilidad neta por día considerando si son de cosecha única o recurrente, y organiza la información mediante algoritmos de ordenamiento eficientes e interacción por consola para ofrecer recomendaciones al jugador.
-
----
-
-## Estructura de Datos Utilizada (`std::vector`)
-
-Para el almacenamiento y gestión de los cultivos en memoria se utilizó la estructura de datos dinámica **`std::vector<Crop>`**.
-
-### Justificación de Elección
-1. **Memoria Dinámica:** El número de cultivos en `crops.txt` puede variar si se agregan nuevos registros; `std::vector` gestiona el redimensionamiento dinámico sin requerir definir un tamaño fijo en tiempo de compilación.
-2. **Acceso Aleatorio** A diferencia de una lista simplemente o doblemente enlazada (`std::list`), el vector almacena los elementos en un bloque contiguo de memoria. Esto permite:
-   * Acceso aleatorio directo a cualquier elemento mediante índice en tiempo constante $O(1)$.
-
-### Complejidad de Operaciones en el Vector
-* **Lectura / Acceso por índice (`operator[]`):** $O(1)$ temporal.
-* **Inserción al final (`push_back`):** $O(1)$ amortizado temporal.
-* **Recorrido secuencial (impresión y filtrado):** $O(n)$ temporal, donde $n$ es la cantidad de cultivos almacenados.
-* **Espacio en memoria:** $O(n)$ para almacenar los $n$ objetos `Crop`.
+Asistente de optimización agrícola diseñado para jugadores de *Stardew Valley*. Permite cargar un catálogo de cultivos desde un archivo de texto, consultar sus estadísticas, filtrarlos por temporada o capacidad de re-cosecha, y ordenarlos por rentabilidad diaria neta a lo largo de una temporada estándar de 28 días.
 
 ---
 
-## Descripción del Proyecto y Diseño POO
+## Descripción y Utilidad
 
-El sistema carga los datos desde un archivo delimitado por comas (`crops.txt`) y modela cada registro mediante la clase `Crop` implementada bajo una arquitectura basada en encabezados (*header-only*):
+En *Stardew Valley*, maximizar las ganancias requiere calcular el retorno neto diario de cada semilla considerando su costo inicial, el tiempo de maduración y si el cultivo produce múltiples cosechas dentro de una temporada de 28 días. Este programa automatiza dichos cálculos y organiza la información para facilitar la toma de decisiones estratégicas.
 
-- **Atributos de `Crop`:**
-  * `name` (`string`): Nombre del cultivo.
-  * `season` (`string`): Temporada en la que crece (`Spring`, `Summer`, `Fall`).
-  * `growDays` (`int`): Días requeridos para la primera cosecha.
-  * `regrowDays` (`int`): Días que tarda en volver a producir (0 si no re-produce).
-  * `sellPrice` (`int`): Precio de venta por unidad producida.
-  * `seedCost` (`int`): Costo de compra de la semilla.
+### Fórmulas de Rentabilidad Implementadas
 
-- **Lógica Financiera y Complejidad de Métodos:**
-  * **Getters y `canRegrow()`:** $O(1)$ temporal. Operaciones de lectura y evaluación condicional directa.
-  * **Cosecha única (`regrowDays == 0`):**
-    $$\text{dailyCropsProfit} = \frac{\text{sellPrice} - \text{seedCost}}{\text{growDays}}$$
-    *Complejidad:* $O(1)$ temporal (operaciones aritméticas elementales).
-  * **Cosecha múltiple (`regrowDays > 0`) a lo largo de una temporada (28 días):**
-    $$\text{totalHarvests} = 1 + \left\lfloor \frac{28 - \text{growDays}}{\text{regrowDays}} \right\rfloor$$
-    $$\text{netProfit} = (\text{totalHarvests} \times \text{sellPrice}) - \text{seedCost}$$
-    $$\text{dailyCropsProfit} = \frac{\text{netProfit}}{28}$$
-    *Complejidad:* $O(1)$ temporal.
-  * **Sobrecarga de operador `<`:** Compara directamente dos instancias de `Crop` con base en el valor de retorno de `dailyCropsProfit()`.
-    *Complejidad:* $O(1)$ temporal.
+* **Cultivos de cosecha única:**
+  $$\text{Ganancia Diaria} = \frac{\text{Precio de Venta} - \text{Costo de Semilla}}{\text{Días de Crecimiento}}$$
+
+* **Cultivos de multi-cosecha (regrow):**
+  $$\text{Cosechas Totales} = 1 + \left\lfloor \frac{28 - \text{Días de Crecimiento}}{\text{Días de Re-cosecha}} \right\rfloor$$
+  $$\text{Ganancia Diaria} = \frac{(\text{Cosechas Totales} \times \text{Precio de Venta}) - \text{Costo de Semilla}}{28}$$
 
 ---
 
-## Análisis de Complejidad y Algoritmos
+## Decisiones Técnicas y Estructuras de Datos
 
-Para la organización de los cultivos según su rentabilidad se implementó el algoritmo **Merge Sort** dentro de una clase genérica con plantillas (`Sorts<T>`).
+### Algoritmo de Ordenamiento: Merge Sort
+Se seleccionó **Merge Sort** para ordenar los cultivos por rentabilidad diaria debido a las siguientes ventajas:
+* **Complejidad garantizada:** Mantiene un tiempo de ejecución de $O(n \log n)$ incluso en el peor de los casos, a diferencia de *Quick Sort* que puede degradarse a $O(n^2)$.
+* **Estabilidad:** Conserva el orden relativo original entre cultivos que tienen exactamente la misma ganancia diaria.
 
-### 1. Merge Sort
-
-- **Complejidad Temporal:**
-  * **Todos los Casos:** $O(n \log n)$
-    
-  * **Justificación:** Primero, la función mergeSplit parte el arreglo a la mitad una y otra vez hasta que quedan elementos individuales, lo que forma un árbol de llamadas con una profundidad de $\log_2(n)$ niveles. Después, mergeArray va juntando y comparando esos pedazos en orden; recorrer y mezclar todos los elementos en cada nivel toma tiempo lineal, es decir, $O(n)$. Si multiplicas los $n$ pasos que toma mezclar por los $\log_2(n)$ niveles que tiene el árbol, el tiempo total siempre da $O(n \log n)$.
-
-### 2. Justificación de Elección
-
-Se seleccionó **Merge Sort** frente a otras alternativas por las siguientes razones:
-1. **Rendimiento acotado en el peor caso:** Merge Sort garantiza un límite estricto de $O(n \log n)$ en cualquier escenario de entrada.
-2. **Estabilidad:** Al ordenar colecciones de objetos, Merge Sort preserva el orden relativo original de aquellos cultivos que poseen la misma rentabilidad diaria (`dailyCropsProfit`).
+### Estructura de Datos No Lineal: Árbol Binario de Búsqueda (BST)
+Se implementó un **BST** para indexar los nombres de los cultivos:
+* **Búsqueda rápida:** Permite verificar la existencia de un cultivo específico sin recorrer secuencialmente todo el arreglo de datos.
+* **Ordenamiento alfabético natural:** Al realizar un recorrido *Inorder* (izquierda, raíz, derecha), se obtienen todos los nombres ordenados alfabéticamente en tiempo lineal $O(n)$ sin necesidad de ejecutar un algoritmo de ordenamiento adicional.
 
 ---
 
-## Interacción con el Usuario
+## Análisis de Complejidad
 
-El programa cuenta con un menú interactivo por consola que permite:
-1. **Consultar todos los cultivos:** Aplica Merge Sort sobre la colección completa para presentar el orden de rentabilidad diaria general.
-2. **Filtrar por temporada:** Permite al usuario seleccionar una estación específica (`Spring`, `Summer`, `Fall`), extrayendo los cultivos en $O(n)$ y ordenándolos en $O(n \log n)$.
-3. **Salir:** Finaliza la ejecución del asistente de manera limpia.
+### 1. Algoritmo de Ordenamiento (`mergeSort.h`)
+
+| Operación / Caso | Mejor Caso | Caso Promedio | Peor Caso | Complejidad Espacial |
+| :--- | :---: | :---: | :---: | :---: |
+| `mergeSort` | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(n)$ |
+| `mergeSplit` | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ (pila) |
+| `mergeArray` / `copyArray` | $O(n)$ | $O(n)$ | $O(n)$ | $O(n)$ |
+
+### 2. Estructura de Datos: BST (`BST.h`)
+
+| Método | Mejor Caso | Caso Promedio | Peor Caso (Árbol sesgado) | Descripción |
+| :--- | :---: | :---: | :---: | :--- |
+| `add(val)` | $O(1)$ | $O(\log n)$ | $O(n)$ | Inserción recursiva manteniendo la propiedad del BST. |
+| `find(val)` | $O(1)$ | $O(\log n)$ | $O(n)$ | Búsqueda binaria descartando la mitad del subárbol en cada paso. |
+| `printInorder()` | $O(n)$ | $O(n)$ | $O(n)$ | Visita cada nodo exactamente una vez para imprimir en orden. |
+| `removeAll()` | $O(n)$ | $O(n)$ | $O(n)$ | Liberación de memoria en postorden de todos los nodos. |
+
+### 3. Componentes del Programa (`JunimosCropAssistant.cpp`)
+
+| Componente / Opción del Menú | Complejidad Temporal | Explicación |
+| :--- | :---: | :--- |
+| Carga de archivo (`crops.txt`) | $O(n \log n)$ promedio / $O(n^2)$ peor caso | Leer $n$ líneas es $O(n)$, e insertar cada elemento en el BST toma $O(\log n)$ promedio ($O(n)$ peor caso). |
+| **1.** Ver lista sin ordenar | $O(n)$ | Recorre el `std::vector` secuencialmente para imprimir la tabla. |
+| **2.** Ordenar por rentabilidad | $O(n \log n)$ | Ejecuta `mergeSort` sobre el vector de $n$ cultivos. |
+| **3.** Filtrar por temporada | $O(n \log n)$ | Filtra en $O(n)$ y ordena el subconjunto resultante en $O(k \log k)$, donde $k \le n$. |
+| **4.** Buscar cultivo por nombre | $O(n)$ | Realiza la búsqueda en el BST en $O(\log n)$ promedio y recupera los atributos del vector en $O(n)$. |
+| **5.** Orden alfabético | $O(n)$ | Ejecuta el recorrido `printInorder()` sobre el BST. |
+| **6.** Cultivos multi-cosecha | $O(n \log n)$ | Filtra mediante `canRegrow()` en $O(n)$ y ordena con `mergeSort` en $O(k \log k)$. |
+
+### Complejidad Final del Programa
+Considerando la carga inicial de datos y la ejecución de las operaciones principales del menú interactivo, la complejidad temporal dominante del sistema es **$O(n \log n)$** en el caso promedio (y **$O(n^2)$** en el peor caso si las inserciones en el BST ocurren en orden estrictamente ascendente o descendente), con una complejidad espacial de **$O(n)$**.
 
 ---
 
-## Instrucciones de Compilación y Ejecución
+## Estructura del Proyecto
 
-Debido al diseño modular basado en archivos de cabecera (`crop.h` y `mergeSort.h`), la compilación se realiza de manera directa sin requerir el enlazado manual de unidades de traducción adicionales:
+* `JunimosCropAssistant.cpp`: Programa principal, lectura de archivo y menú interactivo.
+* `crop.h`: Definición de la clase `Crop`, cálculo de rentabilidad y sobrecarga del operador `<`.
+* `mergeSort.h`: Implementación genérica de *Merge Sort* mediante plantillas (`template`).
+* `BST.h`: Implementación genérica de un Árbol Binario de Búsqueda.
+* `crops.txt`: Archivo de entrada con los datos de los cultivos en formato CSV.
+
+---
+
+## Compilación y Ejecución
+
+Asegúrate de que `crops.txt` se encuentre en el mismo directorio que el ejecutable.
 
 ```bash
-g++ JunimosCropAssistant.cpp -o JunimosCropAssistant
+g++ -std=c++17 JunimosCropAssistant.cpp -o JunimosCropAssistant
+./JunimosCropAssistant
