@@ -21,51 +21,22 @@ En *Stardew Valley*, maximizar las ganancias requiere calcular el retorno neto d
 
 ## Decisiones Técnicas y Estructuras de Datos
 
-### Algoritmo de Ordenamiento: Merge Sort
-Se seleccionó **Merge Sort** para ordenar los cultivos por rentabilidad diaria debido a las siguientes ventajas:
-* **Complejidad garantizada:** Mantiene un tiempo de ejecución de $O(n \log n)$ incluso en el peor de los casos, a diferencia de *Quick Sort* que puede degradarse a $O(n^2)$.
-* **Estabilidad:** Conserva el orden relativo original entre cultivos que tienen exactamente la misma ganancia diaria.
-
-### Estructura de Datos No Lineal: Árbol Binario de Búsqueda (BST)
-Se implementó un **BST** para indexar los nombres de los cultivos:
-* **Búsqueda rápida:** Permite verificar la existencia de un cultivo específico sin recorrer secuencialmente todo el arreglo de datos.
-* **Ordenamiento alfabético natural:** Al realizar un recorrido *Inorder* (izquierda, raíz, derecha), se obtienen todos los nombres ordenados alfabéticamente en tiempo lineal $O(n)$ sin necesidad de ejecutar un algoritmo de ordenamiento adicional.
+* **Merge Sort (`mergeSort.h`):** Elegido para ordenar los cultivos por rentabilidad diaria porque garantiza una complejidad de $O(n \log n)$ en todos los casos y es un algoritmo estable (mantiene el orden relativo en empates).
+* **Árbol Binario de Búsqueda (`BST.h`):** Elegido para indexar los nombres de los cultivos, permitiendo búsquedas rápidas sin recorrer todo el arreglo y obteniendo la lista ordenada alfabéticamente mediante un recorrido *Inorder*.
 
 ---
 
 ## Análisis de Complejidad
 
-### 1. Algoritmo de Ordenamiento (`mergeSort.h`)
-
-| Operación / Caso | Mejor Caso | Caso Promedio | Peor Caso | Complejidad Espacial |
-| :--- | :---: | :---: | :---: | :---: |
-| `mergeSort` | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(n)$ |
-| `mergeSplit` | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ (pila) |
-| `mergeArray` / `copyArray` | $O(n)$ | $O(n)$ | $O(n)$ | $O(n)$ |
-
-### 2. Estructura de Datos: BST (`BST.h`)
-
-| Método | Mejor Caso | Caso Promedio | Peor Caso (Árbol sesgado) | Descripción |
+| Componente / Operación | Mejor Caso | Caso Promedio | Peor Caso | Notas |
 | :--- | :---: | :---: | :---: | :--- |
-| `add(val)` | $O(1)$ | $O(\log n)$ | $O(n)$ | Inserción recursiva manteniendo la propiedad del BST. |
-| `find(val)` | $O(1)$ | $O(\log n)$ | $O(n)$ | Búsqueda binaria descartando la mitad del subárbol en cada paso. |
-| `printInorder()` | $O(n)$ | $O(n)$ | $O(n)$ | Visita cada nodo exactamente una vez para imprimir en orden. |
-| `removeAll()` | $O(n)$ | $O(n)$ | $O(n)$ | Liberación de memoria en postorden de todos los nodos. |
+| **Merge Sort** (`mergeSort`) | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | Divide y mezcla los $n$ cultivos; espacio auxiliar $O(n)$. |
+| **BST: Inserción / Búsqueda** (`add`, `find`) | $O(1)$ | $O(\log n)$ | $O(n)$ | Depende del balanceo del árbol ($O(n)$ si está sesgado). |
+| **BST: Recorrido / Limpieza** (`printInorder`, `removeAll`) | $O(n)$ | $O(n)$ | $O(n)$ | Visita cada nodo exactamente una vez. |
+| **Carga de archivo** (`crops.txt`) | $O(n)$ | $O(n \log n)$ | $O(n^2)$ | Lee $n$ líneas e inserta cada nombre en el BST. |
+| **Filtros e impresión** (Opciones 1, 3, 4, 6) | $O(n)$ | $O(n)$ / $O(n \log n)$ | $O(n)$ / $O(n \log n)$ | Recorren el vector en $O(n)$ y ordenan subconjuntos con Merge Sort. |
 
-### 3. Componentes del Programa (`JunimosCropAssistant.cpp`)
-
-| Componente / Opción del Menú | Complejidad Temporal | Explicación |
-| :--- | :---: | :--- |
-| Carga de archivo (`crops.txt`) | $O(n \log n)$ promedio / $O(n^2)$ peor caso | Leer $n$ líneas es $O(n)$, e insertar cada elemento en el BST toma $O(\log n)$ promedio ($O(n)$ peor caso). |
-| **1.** Ver lista sin ordenar | $O(n)$ | Recorre el `std::vector` secuencialmente para imprimir la tabla. |
-| **2.** Ordenar por rentabilidad | $O(n \log n)$ | Ejecuta `mergeSort` sobre el vector de $n$ cultivos. |
-| **3.** Filtrar por temporada | $O(n \log n)$ | Filtra en $O(n)$ y ordena el subconjunto resultante en $O(k \log k)$, donde $k \le n$. |
-| **4.** Buscar cultivo por nombre | $O(n)$ | Realiza la búsqueda en el BST en $O(\log n)$ promedio y recupera los atributos del vector en $O(n)$. |
-| **5.** Orden alfabético | $O(n)$ | Ejecuta el recorrido `printInorder()` sobre el BST. |
-| **6.** Cultivos multi-cosecha | $O(n \log n)$ | Filtra mediante `canRegrow()` en $O(n)$ y ordena con `mergeSort` en $O(k \log k)$. |
-
-### Complejidad Final del Programa
-Considerando la carga inicial de datos y la ejecución de las operaciones principales del menú interactivo, la complejidad temporal dominante del sistema es **$O(n \log n)$** en el caso promedio (y **$O(n^2)$** en el peor caso si las inserciones en el BST ocurren en orden estrictamente ascendente o descendente), con una complejidad espacial de **$O(n)$**.
+**Complejidad Final del Programa:** **$O(n \log n)$** en el caso promedio (y **$O(n^2)$** en el peor caso si el árbol queda completamente desbalanceado al cargar los datos), con una complejidad espacial de **$O(n)$**.
 
 ---
 
@@ -84,5 +55,5 @@ Considerando la carga inicial de datos y la ejecución de las operaciones princi
 Asegúrate de que `crops.txt` se encuentre en el mismo directorio que el ejecutable.
 
 ```bash
-g++ -std=c++17 JunimosCropAssistant.cpp -o JunimosCropAssistant
+g++ JunimosCropAssistant.cpp -o JunimosCropAssistant
 ./JunimosCropAssistant
